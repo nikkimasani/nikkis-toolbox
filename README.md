@@ -1,0 +1,39 @@
+# Nikki's Toolbox 🧰
+
+A launcher dashboard — one place to open all of my apps, installable as a PWA on phone, tablet, or desktop.
+
+**Live:** https://toolbox-nine-eta.vercel.app
+
+## Apps
+
+| # | App | URL |
+|---|-----|-----|
+| 1 | Nikki's TradeLab | https://nikkis-tradehub.vercel.app |
+| 2 | The Book Nook | https://reader-hub-rust.vercel.app |
+| 3 | PMP Boot Camp | https://pmp-dashboard-one.vercel.app |
+| 4 | SlateRun Sports Hub | https://sports-hub-topaz.vercel.app |
+| 5 | Craft Club | https://dabble-five.vercel.app |
+
+Press **1–5** on a keyboard to jump straight to an app.
+
+## Stack
+
+- Single-file vanilla HTML/CSS/JS (`index.html`) — no build step, no dependencies
+- PWA: `manifest.json` + `sw.js` (network-first HTML, cache-first static assets) + SVG icons
+- Hosted on Vercel
+
+## Run locally
+
+Open `index.html` in a browser. (Service worker only registers on HTTPS, so PWA features are production-only.)
+
+## Deploy
+
+```powershell
+vercel --cwd C:\Users\nikki\toolbox --prod --yes
+```
+
+## Adding a new app
+
+1. Copy one of the `.card` blocks in `index.html` and update the name, description, link, and `data-key`.
+2. Add a per-app accent class (see `.card.tradelab` etc. in the CSS).
+3. Redeploy.
