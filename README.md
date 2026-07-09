@@ -28,9 +28,15 @@ Open `index.html` in a browser. (Service worker only registers on HTTPS, so PWA 
 
 ## Deploy
 
+Connected to Vercel with auto-deploy — just push to `main`:
+
 ```powershell
-vercel --cwd C:\Users\nikki\toolbox --prod --yes
+git add .
+git commit -m "describe change"
+git push
 ```
+
+Vercel deploys to production within ~30 seconds. (Manual fallback: `vercel --cwd C:\Users\nikki\toolbox --prod --yes`.)
 
 ## Adding a new app
 
