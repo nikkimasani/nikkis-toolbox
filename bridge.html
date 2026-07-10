@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shared Settings Bridge</title>
+</head>
+<body>
+<script>
+const STORAGE_KEY = 'nikki_shared_settings_bridge_v1';
+const ALLOWED_ORIGINS = new Set([
+  'https://toolbox-nine-eta.vercel.app',
+  'https://tradehub-sooty.vercel.app',
+  'https://reader-hub-rust.vercel.app',
+  'https://pmp-dashboard-one.vercel.app',
+  'https://sports-hub-topaz.vercel.app',
+  'https://dabble-five.vercel.app'
+]);
+
+function readStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (parsed && typeof parsed === 'object') return parsed;
+  } catch {}
+  return {};
+}
+
+function writeStore(store) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+function getNamespace(store, namespace) {
+  const value = store[namespace];
+  return value && typeof value === 'object' ? value : {};
+}
+
+function sanitizeEntries(entries) {
+  const clean = {};
+  if (!entries || typeof entries !== 'object') return clean;
+  for (const [key, value] of Object.entries(entries)) {
+    if (typeof key !== 'string' || !key) continue;
+    if (typeof value === 'string') clean[key] = value;
+    else if (value === null) clean[key] = null;
+    else clean[key] = String(value);
+  }
+  return clean;
+}
+
+window.addEventListener('message', event => {
+  if (!ALLOWED_ORIGINS.has(event.origin)) return;
+  const data = event.data;
+  if (!data || data.source !== 'nikki-shared-settings-client') return;
+  const namespace = typeof data.namespace === 'string' ? data.namespace : '';
+  const requestId = data.requestId;
+  if (!namespace || !requestId) return;
+
+  let payload = {};
+  let ok = true;
+  let error = null;
+
+  try {
+    const store = readStore();
+    if (data.action === 'getNamespace') {
+      payload.entries = getNamespace(store, namespace);
+    } else if (data.action === 'mergeNamespace') {
+      const current = getNamespace(store, namespace);
+      const next = { ...current, ...sanitizeEntries(data.payload?.entries) };
+      store[namespace] = next;
+      writeStore(store);
+      payload.entries = next;
+    } else if (data.action === 'removeNamespaceKeys') {
+      const current = { ...getNamespace(store, namespace) };
+      for (const key of Array.isArray(data.payload?.keys) ? data.payload.keys : []) {
+        if (typeof key === 'string') delete current[key];
+      }
+      store[namespace] = current;
+      writeStore(store);
+      payload.entries = current;
+    } else {
+      ok = false;
+      error = 'Unsupported action';
+    }
+  } catch (err) {
+    ok = false;
+    error = err instanceof Error ? err.message : 'Bridge error';
+  }
+
+  event.source?.postMessage({
+    source: 'nikki-shared-settings-bridge',
+    requestId,
+    ok,
+    payload,
+    error,
+  }, event.origin);
+});
+</script>
+</body>
+</html>
