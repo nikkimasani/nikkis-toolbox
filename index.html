@@ -85,6 +85,7 @@ h1 em { font-style: italic; font-weight: 600; color: var(--muted); }
 .card:nth-child(3) { animation-delay: .19s; }
 .card:nth-child(4) { animation-delay: .26s; }
 .card:nth-child(5) { animation-delay: .33s; }
+.card:nth-child(6) { animation-delay: .40s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 
 .card::after {
@@ -129,6 +130,7 @@ h1 em { font-style: italic; font-weight: 600; color: var(--muted); }
 .card.pmp       { --accent: #c8ff00; --card-bg: #131608; }
 .card.slaterun  { --accent: #ff3d00; --card-bg: #170d09; }
 .card.craftclub { --accent: #f472b6; --card-bg: #170d14; }
+.card.pmcopilot { --accent: #2de0c0; --card-bg: #0a1614; }
 
 /* ===== FOOTER ===== */
 footer { margin-top: 56px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--faint); font-size: 12px; letter-spacing: .06em; }
@@ -221,11 +223,22 @@ footer { margin-top: 56px; display: flex; justify-content: space-between; align-
         <span class="card-cta">Open Craft Club <span class="arrow">→</span></span>
       </div>
     </a>
+    <a class="card pmcopilot" href="https://pm-copilot-six.vercel.app" data-key="6">
+      <div class="card-top">
+        <span class="card-num">No. 06</span>
+        <span class="card-glyph">🧭</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">PM Copilot</div>
+        <p class="card-desc">Stakeholder register, engagement mapping, and an AI comms studio that drafts updates tuned to every audience.</p>
+        <span class="card-cta">Open PM Copilot <span class="arrow">→</span></span>
+      </div>
+    </a>
   </main>
 
   <footer>
     <span>Designed by Nikki Masani</span>
-    <span class="hint">Press <kbd>1</kbd>–<kbd>5</kbd> to jump to an app</span>
+    <span class="hint">Press <kbd>1</kbd>–<kbd>6</kbd> to jump to an app</span>
   </footer>
 </div>
 
