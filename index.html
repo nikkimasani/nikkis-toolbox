@@ -135,6 +135,13 @@ h1 em { font-style: italic; font-weight: 600; color: var(--muted); }
 .card.opendesign { --accent: #a78bfa; --card-bg: #120d1c; }
 .card.worldmonitor { --accent: #38bdf8; --card-bg: #081420; }
 .card.lifecommand { --accent: #f59e0b; --card-bg: #18130b; }
+.card.lifecommand .arrow {
+  font-size: 0;
+}
+.card.lifecommand .arrow::before {
+  content: '->';
+  font-size: 12px;
+}
 
 /* ===== FOOTER ===== */
 footer { margin-top: 56px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--faint); font-size: 12px; letter-spacing: .06em; }
@@ -142,6 +149,13 @@ footer { margin-top: 56px; display: flex; justify-content: space-between; align-
   font-family: inherit; font-size: 11px; color: var(--muted);
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px;
   padding: 2px 7px; margin: 0 2px; background: var(--bg2);
+}
+footer .hint {
+  font-size: 0;
+}
+footer .hint::before {
+  content: 'Press 1 to 9 to jump to an app';
+  font-size: 12px;
 }
 
 @media (max-width: 760px) {
