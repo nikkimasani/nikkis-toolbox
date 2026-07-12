@@ -45,6 +45,33 @@ body::before {
   z-index: 0;
 }
 .wrap { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) clamp(20px, 4vw, 40px) 80px; }
+.launcher-tools { display: grid; gap: 12px; margin-bottom: 24px; }
+.search-shell, .filter-row, .recent-shell { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.search-shell input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  padding: 14px 16px;
+  font: inherit;
+}
+.filter-chip, .recent-pill, .app-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  padding: 8px 12px;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.filter-chip { cursor: pointer; }
+.filter-chip.active { color: var(--text); border-color: var(--text); }
+.recent-pill { text-decoration: none; }
+.card-meta { margin-top: 12px; }
+.card.hidden-by-filter { display: none; }
 
 /* ===== HEADER ===== */
 header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: clamp(32px, 6vw, 64px); }
@@ -181,6 +208,18 @@ footer .hint::before {
     </div>
   </header>
 
+  <section class="launcher-tools" aria-label="Launcher tools">
+    <div class="search-shell">
+      <input id="appSearchInput" type="search" placeholder="Search apps, like life, reader, design, sports">
+    </div>
+    <div class="filter-row" id="availabilityFilters">
+      <button class="filter-chip active" type="button" data-filter="all">All</button>
+      <button class="filter-chip" type="button" data-filter="live">Live</button>
+      <button class="filter-chip" type="button" data-filter="local">Local</button>
+    </div>
+    <div class="recent-shell" id="recentApps"></div>
+  </section>
+
   <main class="grid" aria-label="My apps">
     <a class="card tradelab" href="https://tradehub-sooty.vercel.app/" data-key="1">
       <div class="card-top">
@@ -310,6 +349,84 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const card = document.querySelector('.card[data-key="' + e.key + '"]');
   if (card) window.location.href = card.href;
+});
+
+// ===== SEARCH + FILTERS =====
+const TOOLBOX_RECENT_KEY = 'toolbox-recent-apps-v1';
+var currentAvailabilityFilter = 'all';
+
+function availabilityForCard(card) {
+  return card.href.includes('10.0.0.29') ? 'local' : 'live';
+}
+
+function ensureCardBadges() {
+  document.querySelectorAll('.card').forEach(card => {
+    if (card.querySelector('.app-badge')) return;
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    const badge = document.createElement('span');
+    badge.className = 'app-badge';
+    badge.textContent = availabilityForCard(card) === 'local' ? 'Home Wi-Fi' : 'Live';
+    meta.appendChild(badge);
+    const body = card.querySelector('.card-body');
+    if (body) body.insertBefore(meta, body.querySelector('.card-cta'));
+  });
+}
+
+function readRecentApps() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(TOOLBOX_RECENT_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecentApp(card) {
+  const next = readRecentApps().filter(item => item.href !== card.href);
+  next.unshift({
+    href: card.href,
+    name: card.querySelector('.card-name')?.textContent || 'App'
+  });
+  localStorage.setItem(TOOLBOX_RECENT_KEY, JSON.stringify(next.slice(0, 3)));
+}
+
+function renderRecentApps() {
+  const recent = readRecentApps();
+  const shell = document.getElementById('recentApps');
+  if (!shell) return;
+  shell.innerHTML = recent.length
+    ? recent.map(item => `<a class="recent-pill" href="${item.href}">Recent: ${item.name}</a>`).join('')
+    : '<span class="recent-pill">No recent apps yet</span>';
+}
+
+function applyCardFilters() {
+  const term = (document.getElementById('appSearchInput')?.value || '').trim().toLowerCase();
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.filter === currentAvailabilityFilter);
+  });
+  document.querySelectorAll('.card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const availability = availabilityForCard(card);
+    const matchesSearch = !term || text.includes(term);
+    const matchesAvailability = currentAvailabilityFilter === 'all' || availability === currentAvailabilityFilter;
+    card.classList.toggle('hidden-by-filter', !(matchesSearch && matchesAvailability));
+  });
+}
+
+ensureCardBadges();
+renderRecentApps();
+applyCardFilters();
+
+document.getElementById('appSearchInput')?.addEventListener('input', applyCardFilters);
+document.getElementById('availabilityFilters')?.addEventListener('click', event => {
+  const chip = event.target.closest('[data-filter]');
+  if (!chip) return;
+  currentAvailabilityFilter = chip.dataset.filter;
+  applyCardFilters();
+});
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', () => writeRecentApp(card));
 });
 
 // ===== PWA SERVICE WORKER =====
