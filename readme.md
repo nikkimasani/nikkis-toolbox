@@ -13,6 +13,10 @@ A launcher dashboard — one place to open all of my apps, installable as a PWA 
 | 3 | PMP Boot Camp | https://pmp-dashboard-one.vercel.app |
 | 4 | SlateRun Sports Hub | https://sports-hub-topaz.vercel.app |
 | 5 | Craft Club | https://dabble-five.vercel.app |
+| 6 | PM Copilot | https://pm-copilot-six.vercel.app |
+| 7 | Open Design | http://10.0.0.29:7457 |
+| 8 | World Monitor | https://www.worldmonitor.app |
+| 9 | Life Command Center | https://life-transition-command-center.vercel.app |
 
 Press **1–5** on a keyboard to jump straight to an app.
 
