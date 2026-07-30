@@ -16,7 +16,7 @@ A launcher dashboard — one place to open all of my apps, installable as a PWA 
 | 6 | PM Copilot | https://pm-copilot-six.vercel.app |
 | 7 | Open Design | http://10.0.0.29:7457 |
 | 8 | World Monitor | https://www.worldmonitor.app |
-| 9 | Life Command Center | https://life-transition-command-center.vercel.app |
+| 9 | Life Command Center | https://nikki-transition-plan.nikkimasani.chatgpt.site |
 
 Press **1–5** on a keyboard to jump straight to an app.
 
