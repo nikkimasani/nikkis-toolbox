@@ -47,6 +47,7 @@ body::before {
 .wrap { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) clamp(20px, 4vw, 40px) 80px; }
 .launcher-tools { display: grid; gap: 12px; margin-bottom: 24px; }
 .search-shell, .filter-row, .recent-shell { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.launch-note { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .search-shell input {
   width: 100%;
   border: 1px solid var(--border);
@@ -225,6 +226,7 @@ footer .hint::before {
       <button class="filter-chip" type="button" data-filter="live">Live</button>
       <button class="filter-chip" type="button" data-filter="local">Local</button>
     </div>
+    <p class="launch-note">Apps open in new tabs, so you can keep several open and switch between them anytime.</p>
     <div class="recent-shell" id="recentApps"></div>
   </section>
 
@@ -400,7 +402,10 @@ setInterval(tickClock, 30000);
 document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const card = document.querySelector('.card[data-key="' + e.key + '"]');
-  if (card) window.location.href = card.href;
+  if (card) {
+    writeRecentApp(card);
+    window.open(card.href, '_blank', 'noopener');
+  }
 });
 
 // ===== SEARCH + FILTERS =====
@@ -448,7 +453,7 @@ function renderRecentApps() {
   const shell = document.getElementById('recentApps');
   if (!shell) return;
   shell.innerHTML = recent.length
-    ? recent.map(item => `<a class="recent-pill" href="${item.href}">Recent: ${item.name}</a>`).join('')
+    ? recent.map(item => `<a class="recent-pill" href="${item.href}" target="_blank" rel="noopener">Recent: ${item.name}</a>`).join('')
     : '<span class="recent-pill">No recent apps yet</span>';
 }
 
@@ -478,6 +483,8 @@ document.getElementById('availabilityFilters')?.addEventListener('click', event 
   applyCardFilters();
 });
 document.querySelectorAll('.card').forEach(card => {
+  card.target = '_blank';
+  card.rel = 'noopener';
   card.addEventListener('click', () => writeRecentApp(card));
 });
 
