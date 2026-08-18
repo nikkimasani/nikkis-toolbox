@@ -1,0 +1,18 @@
+{
+  "name": "Pi Command Center",
+  "short_name": "Pi Command",
+  "description": "Interactive Raspberry Pi project guides, setup walkthroughs, commands, inventory, and progress tracking.",
+  "start_url": "/pi-command-center.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07101a",
+  "theme_color": "#07101a",
+  "orientation": "any",
+  "icons": [
+    {"src":"/pi-pwa-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Setup Guide","short_name":"Setup","url":"/pi-setup-guide.html"},
+    {"name":"Projects","short_name":"Projects","url":"/pi-command-center.html"}
+  ]
+}
