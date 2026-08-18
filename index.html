@@ -74,6 +74,58 @@ body::before {
 .card-meta { margin-top: 12px; }
 .card.hidden-by-filter { display: none; }
 
+/* ===== APP TABS ===== */
+.app-workspace {
+  display: none;
+  margin: 0 0 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg2);
+}
+.app-workspace.has-tabs { display: block; }
+.app-tab-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.025);
+}
+.app-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 210px;
+  flex: 0 0 auto;
+  padding: 8px 9px 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.app-tab.is-active { background: #1c1c28; border-color: var(--border); color: var(--text); }
+.app-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-tab-close {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.app-tab-close:hover { background: rgba(255,255,255,.12); }
+.app-panel { height: min(72vh, 760px); background: #fff; }
+.app-panel[hidden] { display: none; }
+.app-panel iframe { width: 100%; height: 100%; border: 0; display: block; }
+
 /* ===== HEADER ===== */
 header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: clamp(32px, 6vw, 64px); }
 .masthead .kicker {
@@ -229,8 +281,13 @@ footer .hint::before {
       <button class="filter-chip" type="button" data-filter="live">Live</button>
       <button class="filter-chip" type="button" data-filter="local">Local</button>
     </div>
-    <p class="launch-note">Apps open in new tabs, so you can keep several open and switch between them anytime.</p>
+    <p class="launch-note">Open any app to add it to the workspace below. Keep several open and switch between their tabs anytime.</p>
     <div class="recent-shell" id="recentApps"></div>
+  </section>
+
+  <section class="app-workspace" id="appWorkspace" aria-label="Open apps">
+    <div class="app-tab-list" id="appTabList" role="tablist" aria-label="Open apps"></div>
+    <div id="appTabPanels"></div>
   </section>
 
   <main class="grid" aria-label="My apps">
@@ -439,8 +496,7 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const card = document.querySelector('.card[data-key="' + e.key + '"]');
   if (card) {
-    writeRecentApp(card);
-    window.open(card.href, '_blank', 'noopener');
+    openApp(card);
   }
 });
 
@@ -484,6 +540,75 @@ function writeRecentApp(card) {
   localStorage.setItem(TOOLBOX_RECENT_KEY, JSON.stringify(next.slice(0, 3)));
 }
 
+function appIdFor(card) {
+  return `app-${card.href.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}`;
+}
+
+function activateApp(appId) {
+  document.querySelectorAll('.app-tab').forEach(tab => {
+    const active = tab.dataset.appId === appId;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+  document.querySelectorAll('.app-panel').forEach(panel => {
+    panel.hidden = panel.id !== `${appId}-panel`;
+  });
+}
+
+function closeApp(appId) {
+  const tab = document.querySelector(`.app-tab[data-app-id="${appId}"]`);
+  const panel = document.getElementById(`${appId}-panel`);
+  const wasActive = tab?.classList.contains('is-active');
+  tab?.remove();
+  panel?.remove();
+  const remaining = document.querySelectorAll('.app-tab');
+  document.getElementById('appWorkspace').classList.toggle('has-tabs', remaining.length > 0);
+  if (wasActive && remaining.length) activateApp(remaining[remaining.length - 1].dataset.appId);
+}
+
+function openApp(card) {
+  const appId = appIdFor(card);
+  const existing = document.querySelector(`.app-tab[data-app-id="${appId}"]`);
+  writeRecentApp(card);
+  if (existing) {
+    activateApp(appId);
+    return;
+  }
+
+  const name = card.querySelector('.card-name')?.textContent || 'App';
+  const tab = document.createElement('button');
+  tab.className = 'app-tab';
+  tab.type = 'button';
+  tab.dataset.appId = appId;
+  tab.setAttribute('role', 'tab');
+  tab.setAttribute('aria-controls', `${appId}-panel`);
+  tab.innerHTML = `<span class="app-tab-label"></span><span class="app-tab-close" role="button" aria-label="Close ${name}">×</span>`;
+  tab.querySelector('.app-tab-label').textContent = name;
+  tab.addEventListener('click', event => {
+    if (event.target.closest('.app-tab-close')) {
+      closeApp(appId);
+      return;
+    }
+    activateApp(appId);
+  });
+
+  const panel = document.createElement('div');
+  panel.className = 'app-panel';
+  panel.id = `${appId}-panel`;
+  panel.setAttribute('role', 'tabpanel');
+  panel.setAttribute('aria-label', name);
+  const frame = document.createElement('iframe');
+  frame.src = card.href;
+  frame.title = name;
+  panel.appendChild(frame);
+
+  document.getElementById('appTabList').appendChild(tab);
+  document.getElementById('appTabPanels').appendChild(panel);
+  document.getElementById('appWorkspace').classList.add('has-tabs');
+  activateApp(appId);
+  document.getElementById('appWorkspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function renderRecentApps() {
   const recent = readRecentApps();
   const shell = document.getElementById('recentApps');
@@ -521,7 +646,10 @@ document.getElementById('availabilityFilters')?.addEventListener('click', event 
 document.querySelectorAll('.card').forEach(card => {
   card.target = '_blank';
   card.rel = 'noopener';
-  card.addEventListener('click', () => writeRecentApp(card));
+  card.addEventListener('click', event => {
+    event.preventDefault();
+    openApp(card);
+  });
 });
 
 // ===== PWA SERVICE WORKER =====
