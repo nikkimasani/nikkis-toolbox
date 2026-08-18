@@ -2,98 +2,193 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080b12">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b12">
 <title>Pi Command Center</title>
 <link rel="stylesheet" href="/pi-command-center.css">
 </head>
 <body>
-<div class="app">
-  <header class="topbar">
-    <div class="brand"><span class="berry">🍓</span><span>Pi Command Center</span></div>
-    <div class="top-actions"><a class="btn" href="/">Nikki's Toolbox</a><button class="btn mobile-back hidden" id="mobileBack">Projects</button></div>
-  </header>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="nav-title">Build Studio</div>
-      <button class="nav-btn active" data-nav="home">⌂ Overview</button>
-      <button class="nav-btn" data-nav="projects">◉ Projects</button>
-      <button class="nav-btn" data-nav="inventory">▣ My Inventory</button>
-      <button class="nav-btn" data-nav="setup">◇ Setup Guide</button>
-      <button class="nav-btn" data-nav="resources">⚑ Resources</button>
-      <div class="side-progress">
-        <div class="nav-title">Your progress</div>
-        <div class="progress-ring" id="overallRing" style="--pct:0%"><strong id="overallPct">0%</strong></div>
-        <div style="text-align:center;color:var(--muted);font-size:11px" id="overallText">0 steps completed</div>
-      </div>
-    </aside>
-    <main class="content">
-      <section id="homeView" class="home">
-        <div class="breadcrumbs">Home / Projects</div>
-        <h1>Choose your next build.</h1>
-        <p>Every project opens into a focused, one-step-at-a-time guide with materials, detailed actions, diagrams, checks, and warnings.</p>
-        <div class="home-tools"><input class="search" id="search" placeholder="Search projects or materials"><button class="btn" id="filterBtn">All difficulties</button></div>
-        <div class="project-grid" id="projectGrid"></div>
-        <div class="setup-grid">
-          <div class="setup-card"><h3>New to Raspberry Pi?</h3><p>Use the shared setup guide before mounting or wiring anything.</p><button class="btn" style="margin-top:12px" onclick="showSetup()">Start Setup Guide</button></div>
-          <div class="setup-card"><h3>Check your inventory</h3><p>Mark what you already own. Material checks save in this browser.</p><button class="btn" style="margin-top:12px" onclick="showInventory()">View Inventory</button></div>
-          <div class="setup-card"><h3>Resume a build</h3><p id="resumeText">Start any project and your last location will be remembered.</p><button class="btn" style="margin-top:12px" id="resumeBtn" disabled>Continue</button></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-row"><span class="logo-dot">🍓</span><div><strong>Pi Command Center</strong><small>Build. Connect. Create.</small></div></div>
+    <nav class="side-nav">
+      <button class="side-link active" data-view="home">⌂ <span>Overview</span></button>
+      <button class="side-link" data-view="projects">◉ <span>Projects</span></button>
+      <button class="side-link" data-view="inventory">▣ <span>My Inventory</span></button>
+      <button class="side-link" data-view="setup">◇ <span>Setup Guide</span></button>
+    </nav>
+    <div class="sidebar-progress">
+      <small>YOUR PROGRESS</small>
+      <div class="ring" id="overallRing"><span id="overallPct">0%</span></div>
+      <div id="overallText">0 steps completed</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="mobile-header">
+      <div class="mobile-brand"><span>🍓</span><strong>Pi Command Center</strong></div>
+      <a href="/" target="_top" class="outline-btn">Nikki's Toolbox</a>
+    </header>
+
+    <section id="homeView" class="view active">
+      <div class="breadcrumb">Home / Projects</div>
+      <section class="welcome">
+        <div>
+          <span class="eyebrow">Raspberry Pi Build Studio</span>
+          <h1>Choose a project and build it step by step.</h1>
+          <p>Open a project, confirm your materials, then follow one focused instruction at a time with a visual, exact actions, completion checks, and warnings.</p>
         </div>
+        <div class="welcome-visual" id="welcomeVisual"></div>
       </section>
-      <section id="projectView" class="hidden"></section>
-      <section id="simpleView" class="hidden"></section>
-    </main>
-  </div>
+
+      <section class="quick-row">
+        <button class="quick-card" id="setupQuick"><strong>New to Raspberry Pi?</strong><span>Start with the shared setup guide.</span><em>Start Setup Guide →</em></button>
+        <button class="quick-card" id="inventoryQuick"><strong>Check your inventory</strong><span>Mark the hardware you already own.</span><em>View Inventory →</em></button>
+        <button class="quick-card" id="resumeQuick"><strong>Resume your build</strong><span id="resumeText">Your last step will appear here.</span><em id="resumeLabel">Nothing started yet</em></button>
+      </section>
+
+      <div class="section-head"><div><span class="eyebrow">All projects</span><h2>What do you want to make?</h2></div><div class="tools"><input id="searchInput" placeholder="Search projects or materials"><select id="difficultySelect"><option value="all">All difficulties</option><option>Easy</option><option>Medium</option><option>Advanced</option></select></div></div>
+      <div id="projectGrid" class="project-grid"></div>
+    </section>
+
+    <section id="projectView" class="view"></section>
+    <section id="simpleView" class="view"></section>
+  </main>
 </div>
 <script src="/pi-command-center-data.js"></script>
 <script>
-const projects=window.PI_PROJECTS, foundation=window.PI_FOUNDATION;
-const progress=JSON.parse(localStorage.getItem('pi-build-progress-v3')||'{}');
-const inventory=JSON.parse(localStorage.getItem('pi-inventory-v3')||'{}');
-let currentProject=null,currentStep=0,activeTab='guide',difficulty='all';
-const save=()=>localStorage.setItem('pi-build-progress-v3',JSON.stringify(progress));
-const saveInventory=()=>localStorage.setItem('pi-inventory-v3',JSON.stringify(inventory));
-const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function completed(p,i){return !!progress[p.id+'-'+i]}
-function countProject(p){return p.steps.filter((_,i)=>completed(p,i)).length}
-function totalSteps(){return projects.reduce((n,p)=>n+p.steps.length,0)}
-function totalDone(){return projects.reduce((n,p)=>n+countProject(p),0)}
-function updateOverall(){const done=totalDone(),total=totalSteps(),pct=Math.round(done/total*100);overallPct.textContent=pct+'%';overallText.textContent=done+' / '+total+' steps completed';overallRing.style.setProperty('--pct',pct+'%')}
-function heroSvg(p){const labels=p.steps[0]?.visual?.slice(0,3)||[p.title];return diagramSvg(labels,p.icon,true)}
-function diagramSvg(labels,icon='🔧',compact=false){
- const w=compact?360:820,h=compact?220:430;const count=labels.length;const gap=(w-100)/Math.max(1,count);let nodes='';
- labels.forEach((label,i)=>{const x=50+i*gap,y=compact?80:160+(i%2?50:-30),bw=compact?100:150,bh=compact?58:80;nodes+=`<g><rect x="${x-bw/2}" y="${y-bh/2}" width="${bw}" height="${bh}" rx="12" fill="#121c2a" stroke="${i===count-1?'#8257ff':'#3b4d68'}" stroke-width="2"/><text x="${x}" y="${y-4}" fill="#f5f7fb" text-anchor="middle" font-size="${compact?12:15}" font-weight="700">${esc(label).slice(0,20)}</text><text x="${x}" y="${y+18}" fill="#8fa0b6" text-anchor="middle" font-size="${compact?9:11}">${i===0?'START':i===count-1?'CHECK':'NEXT'}</text></g>`;if(i<count-1){const nx=50+(i+1)*gap;nodes+=`<path d="M ${x+bw/2+5} ${y} C ${x+bw/2+35} ${y}, ${nx-bw/2-35} ${compact?80:160+((i+1)%2?50:-30)}, ${nx-bw/2-5} ${compact?80:160+((i+1)%2?50:-30)}" stroke="#697cff" stroke-width="3" fill="none" marker-end="url(#arrow)"/>`;}}
- return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Instruction diagram"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#697cff"/></marker><radialGradient id="glow"><stop offset="0" stop-color="#4f46e5" stop-opacity=".18"/><stop offset="1" stop-color="#080d15" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" rx="16" fill="#080d15"/><circle cx="${w/2}" cy="${h/2}" r="${compact?100:190}" fill="url(#glow)"/><text x="30" y="38" font-size="${compact?24:30}" fill="#fff">${icon}</text><text x="${compact?64:72}" y="36" fill="#8290a5" font-size="${compact?10:12}" letter-spacing="2">STEP DIAGRAM</text>${nodes}</svg>`
-}
-function renderHome(){
- homeView.classList.remove('hidden');projectView.classList.add('hidden');simpleView.classList.add('hidden');mobileBack.classList.add('hidden');
- const term=search.value.trim().toLowerCase();projectGrid.innerHTML=projects.filter(p=>(difficulty==='all'||p.difficulty===difficulty)&&(!term||(p.title+' '+p.summary+' '+p.materials.join(' ')).toLowerCase().includes(term))).map((p,idx)=>{const done=countProject(p),pct=Math.round(done/p.steps.length*100);return `<article class="project-tile" onclick="openProject('${p.id}',0)"><div class="tile-img">${heroSvg(p)}</div><h3>${idx+1}. ${p.title}</h3><p>${p.summary}</p><div class="tile-meta"><span class="difficulty ${p.difficulty}">${p.difficulty}</span><span>◷ ${p.time}</span></div><div class="tile-meta"><span>${done}/${p.steps.length} complete</span><span>${pct}%</span></div><div class="mini-bar"><i style="width:${pct}%"></i></div></article>`}).join('');
- const last=JSON.parse(localStorage.getItem('pi-last-location-v3')||'null');if(last){const p=projects.find(x=>x.id===last.id);if(p){resumeText.textContent=`Continue ${p.title}, step ${last.step+1}: ${p.steps[last.step]?.title||''}`;resumeBtn.disabled=false;resumeBtn.onclick=()=>openProject(last.id,last.step)}}
- updateOverall();
-}
-function openProject(id,step=0){currentProject=projects.find(p=>p.id===id);currentStep=Math.min(step,currentProject.steps.length-1);activeTab='guide';localStorage.setItem('pi-last-location-v3',JSON.stringify({id,currentStep,step:currentStep}));renderProject()}
-function renderProject(){
- const p=currentProject,s=p.steps[currentStep],done=countProject(p),pct=Math.round(done/p.steps.length*100);homeView.classList.add('hidden');simpleView.classList.add('hidden');projectView.classList.remove('hidden');mobileBack.classList.remove('hidden');mobileBack.onclick=renderHome;
- projectView.innerHTML=`<div class="breadcrumbs">Projects / ${p.title}</div><section class="project-hero"><div class="hero-image">${heroSvg(p)}</div><div><h1>${p.title}</h1><p>${p.summary}</p><div class="hero-stats"><div class="hero-stat">Difficulty<strong class="difficulty ${p.difficulty}">${p.difficulty}</strong></div><div class="hero-stat">Time<strong>${p.time}</strong></div><div class="hero-stat">Steps<strong>${p.steps.length}</strong></div><div class="hero-stat">Category<strong>${p.category}</strong></div></div></div><button class="btn ${done===p.steps.length?'success':'primary'}" onclick="toggleProjectComplete()">${done===p.steps.length?'✓ Project Complete':'Mark Project Complete'}</button></section><div class="tabs"><button class="tab ${activeTab==='guide'?'active':''}" onclick="setTab('guide')">Guide</button><button class="tab ${activeTab==='steps'?'active':''}" onclick="setTab('steps')">Steps (${p.steps.length})</button><button class="tab ${activeTab==='materials'?'active':''}" onclick="setTab('materials')">Materials</button><button class="tab ${activeTab==='images'?'active':''}" onclick="setTab('images')">Images</button></div><div id="tabBody"></div>`;renderTab();updateOverall();
-}
-function setTab(t){activeTab=t;renderProject()}
-function renderTab(){const p=currentProject,s=p.steps[currentStep],body=document.getElementById('tabBody');if(activeTab==='guide')body.innerHTML=guideHtml(p,s);if(activeTab==='steps')body.innerHTML=stepsHtml(p);if(activeTab==='materials')body.innerHTML=materialsHtml(p,true);if(activeTab==='images')body.innerHTML=imagesHtml(p)}
-function guideHtml(p,s){const done=countProject(p),pct=Math.round(done/p.steps.length*100);return `<div class="guide-grid"><section class="card step-card"><span class="step-chip">Step ${currentStep+1} of ${p.steps.length}</span><h2>${s.title}</h2><div class="step-summary">${s.summary}</div><div class="instruction-list">${s.actions.map((a,i)=>`<div class="instruction"><b>${i+1}</b><div>${a}</div></div>`).join('')}</div><div class="visual-stage">${diagramSvg(s.visual,p.icon,false)}<div class="visual-caption">Generated instruction diagram for this exact step. Follow the labeled sequence left to right.</div></div><div class="check-row"><div class="callout good"><strong>✓ You're done when</strong>${s.success}</div><div class="callout warn"><strong>⚠ Watch out</strong>${s.warning}</div></div><div class="step-footer"><button class="btn" onclick="moveStep(-1)" ${currentStep===0?'disabled':''}>← Previous Step</button><div class="center">Step ${currentStep+1} of ${p.steps.length}<div class="bar"><i style="width:${((currentStep+1)/p.steps.length)*100}%"></i></div></div><div style="display:flex;gap:8px"><button class="btn ${completed(p,currentStep)?'success':'primary'}" onclick="toggleStep()">${completed(p,currentStep)?'✓ Completed':'Mark Complete'}</button><button class="btn primary" onclick="moveStep(1)" ${currentStep===p.steps.length-1?'disabled':''}>Next Step →</button></div></div></section><aside class="right-rail"><div class="card side-card"><h3>Materials for this project</h3>${materialsList(p)}</div><div class="card side-card"><h3>Project Progress</h3><div style="font-size:11px;color:var(--muted)">${done} / ${p.steps.length} steps completed</div><div class="project-progress"><i style="width:${pct}%"></i></div><div class="step-list">${p.steps.map((st,i)=>`<button class="${i===currentStep?'active':''} ${completed(p,i)?'done':''}" onclick="jumpStep(${i})"><span class="step-dot">${completed(p,i)?'✓':i+1}</span><span>${st.title}</span></button>`).join('')}</div></div></aside></div>`}
-function stepsHtml(p){return `<div class="card" style="padding:18px"><h2 style="margin-top:0">Complete build plan</h2><p style="color:var(--muted)">Open any step to jump directly into guided Build Mode.</p><div class="step-list">${p.steps.map((s,i)=>`<button style="padding:10px;border-bottom:1px solid var(--line)" class="${completed(p,i)?'done':''}" onclick="jumpStep(${i});setTab('guide')"><span class="step-dot">${completed(p,i)?'✓':i+1}</span><span><strong style="color:var(--text)">${s.title}</strong><br>${s.summary}</span></button>`).join('')}</div></div>`}
-function materialsList(p){return `<div class="materials">${p.materials.map(m=>{const key=p.id+'::'+m,have=!!inventory[key];return `<div class="material ${have?'have':''}" onclick="toggleMaterial('${encodeURIComponent(key)}')"><span class="tick">${have?'✓':''}</span><span>${m}</span></div>`}).join('')}</div>`}
-function materialsHtml(p){return `<div class="card" style="padding:18px;max-width:760px"><h2 style="margin-top:0">Materials checklist</h2><p style="color:var(--muted)">Tap each item you already have. This list is saved on this device.</p>${materialsList(p)}</div>`}
-function imagesHtml(p){return `<div class="card" style="padding:18px"><h2 style="margin-top:0">Step image library</h2><p style="color:var(--muted)">Each image is generated from the exact step sequence so it stays tied to the instructions.</p><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${p.steps.map((s,i)=>`<button class="card" style="padding:10px;color:white;text-align:left;cursor:pointer" onclick="jumpStep(${i});setTab('guide')"><div class="visual-stage" style="margin:0">${diagramSvg(s.visual,p.icon,true)}</div><strong style="display:block;margin-top:8px">${i+1}. ${s.title}</strong></button>`).join('')}</div></div>`}
-function moveStep(delta){const next=currentStep+delta;if(next<0||next>=currentProject.steps.length)return;currentStep=next;localStorage.setItem('pi-last-location-v3',JSON.stringify({id:currentProject.id,step:currentStep}));renderProject();window.scrollTo({top:0,behavior:'smooth'})}
-function jumpStep(i){currentStep=i;localStorage.setItem('pi-last-location-v3',JSON.stringify({id:currentProject.id,step:i}));renderProject();window.scrollTo({top:0,behavior:'smooth'})}
-function toggleStep(){const k=currentProject.id+'-'+currentStep;progress[k]=!progress[k];save();renderProject()}
-function toggleProjectComplete(){currentProject.steps.forEach((_,i)=>progress[currentProject.id+'-'+i]=true);save();renderProject()}
-function toggleMaterial(encoded){const k=decodeURIComponent(encoded);inventory[k]=!inventory[k];saveInventory();renderProject()}
-function showSetup(){homeView.classList.add('hidden');projectView.classList.add('hidden');simpleView.classList.remove('hidden');mobileBack.classList.remove('hidden');mobileBack.onclick=renderHome;simpleView.innerHTML=`<div class="breadcrumbs">Home / Setup Guide</div><h1>Shared Raspberry Pi setup</h1><p style="color:var(--muted);max-width:760px">Complete these once before any project. Test everything on the desk before you mount it.</p><div class="card" style="padding:18px;max-width:850px"><div class="instruction-list">${foundation.map((x,i)=>`<div class="instruction"><b>${i+1}</b><div>${x}</div></div>`).join('')}</div></div>`}
-function showInventory(){const mats=[...new Set(projects.flatMap(p=>p.materials))];homeView.classList.add('hidden');projectView.classList.add('hidden');simpleView.classList.remove('hidden');mobileBack.classList.remove('hidden');mobileBack.onclick=renderHome;simpleView.innerHTML=`<div class="breadcrumbs">Home / Inventory</div><h1>My Inventory</h1><p style="color:var(--muted)">Tap items you already own. Project material lists will reflect your saved checks.</p><div class="card" style="padding:18px;max-width:850px"><div class="materials">${mats.map(m=>{const anyKey=Object.keys(inventory).find(k=>k.endsWith('::'+m)&&inventory[k]);return `<div class="material ${anyKey?'have':''}" onclick="toggleGlobalMaterial('${encodeURIComponent(m)}')"><span class="tick">${anyKey?'✓':''}</span>${m}</div>`}).join('')}</div></div>`}
-function toggleGlobalMaterial(encoded){const m=decodeURIComponent(encoded);const currently=projects.some(p=>inventory[p.id+'::'+m]);projects.forEach(p=>{if(p.materials.includes(m))inventory[p.id+'::'+m]=!currently});saveInventory();showInventory()}
-search.addEventListener('input',renderHome);filterBtn.onclick=()=>{const order=['all','Easy','Medium','Advanced'];difficulty=order[(order.indexOf(difficulty)+1)%order.length];filterBtn.textContent=difficulty==='all'?'All difficulties':difficulty;renderHome()};
-document.querySelectorAll('[data-nav]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const n=btn.dataset.nav;if(n==='home'||n==='projects')renderHome();else if(n==='inventory')showInventory();else if(n==='setup')showSetup();else{homeView.classList.add('hidden');projectView.classList.add('hidden');simpleView.classList.remove('hidden');simpleView.innerHTML='<div class="breadcrumbs">Home / Resources</div><h1>Resources</h1><div class="card" style="padding:18px;max-width:760px"><p style="color:var(--muted);line-height:1.6">Use official Raspberry Pi documentation for board pinouts, operating-system changes, and hardware specifications. Project-specific instructions in this app are organized so you can work one step at a time and stop whenever something does not match what you see.</p></div>'}});
-renderHome();
+(function(){
+  'use strict';
+  const projects = Array.isArray(window.PI_PROJECTS) ? window.PI_PROJECTS : [];
+  const foundation = Array.isArray(window.PI_FOUNDATION) ? window.PI_FOUNDATION : [];
+  const qs = s => document.querySelector(s);
+  const qsa = s => [...document.querySelectorAll(s)];
+  const homeView = qs('#homeView');
+  const projectView = qs('#projectView');
+  const simpleView = qs('#simpleView');
+  const projectGrid = qs('#projectGrid');
+  const searchInput = qs('#searchInput');
+  const difficultySelect = qs('#difficultySelect');
+  const overallPct = qs('#overallPct');
+  const overallText = qs('#overallText');
+  const overallRing = qs('#overallRing');
+  const resumeQuick = qs('#resumeQuick');
+  const resumeText = qs('#resumeText');
+  const resumeLabel = qs('#resumeLabel');
+  const progress = readJSON('pi-build-progress-v4', {});
+  const inventory = readJSON('pi-inventory-v4', {});
+  let currentProject = null;
+  let currentStep = 0;
+  let currentTab = 'guide';
+
+  function readJSON(key, fallback){ try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch(e){return fallback;} }
+  function save(){ localStorage.setItem('pi-build-progress-v4',JSON.stringify(progress)); }
+  function saveInventory(){ localStorage.setItem('pi-inventory-v4',JSON.stringify(inventory)); }
+  function esc(v){ return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+  function show(view){ [homeView,projectView,simpleView].forEach(v=>v.classList.remove('active')); view.classList.add('active'); window.scrollTo({top:0,behavior:'smooth'}); }
+  function isDone(p,i){ return !!progress[p.id+'-'+i]; }
+  function doneCount(p){ return p.steps.reduce((n,_,i)=>n+(isDone(p,i)?1:0),0); }
+  function totalSteps(){ return projects.reduce((n,p)=>n+p.steps.length,0); }
+  function totalDone(){ return projects.reduce((n,p)=>n+doneCount(p),0); }
+  function updateOverall(){ const total=totalSteps()||1,done=totalDone(),pct=Math.round(done/total*100); overallPct.textContent=pct+'%'; overallText.textContent=done+' / '+totalSteps()+' steps completed'; overallRing.style.background=`conic-gradient(#8257ff ${pct}%,#202839 ${pct}% 100%)`; }
+
+  function svgFor(labels, icon, detailed){
+    const safe = labels.map(x=>esc(x));
+    if(detailed){
+      const boxes=safe.map((label,i)=>{ const x=90+i*150; const y=i%2?210:135; return `<g><rect x="${x}" y="${y}" width="130" height="74" rx="14" fill="#111a29" stroke="${i===safe.length-1?'#8b5cf6':'#34445f'}" stroke-width="2"/><text x="${x+65}" y="${y+30}" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">${label.slice(0,18)}</text><text x="${x+65}" y="${y+52}" fill="#8999b0" font-size="10" text-anchor="middle">${i===0?'START':i===safe.length-1?'CHECK':'NEXT'}</text></g>`; }).join('');
+      const lines=safe.slice(0,-1).map((_,i)=>{ const x1=220+i*150,y1=i%2?247:172,x2=90+(i+1)*150,y2=(i+1)%2?247:172; return `<path d="M${x1} ${y1} C ${x1+35} ${y1},${x2-35} ${y2},${x2} ${y2}" fill="none" stroke="#6576ff" stroke-width="3" marker-end="url(#a)"/>`; }).join('');
+      return `<svg viewBox="0 0 860 360" role="img"><defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#6576ff"/></marker><radialGradient id="g"><stop offset="0" stop-color="#6d5dfc" stop-opacity=".18"/><stop offset="1" stop-color="#090e17" stop-opacity="0"/></radialGradient></defs><rect width="860" height="360" rx="18" fill="#080d15"/><circle cx="430" cy="180" r="190" fill="url(#g)"/><text x="34" y="48" font-size="34">${icon}</text><text x="82" y="44" fill="#8fa0b5" font-size="12" letter-spacing="2">STEP VISUAL</text>${lines}${boxes}</svg>`;
+    }
+    return `<svg viewBox="0 0 420 220" role="img"><defs><linearGradient id="c" x1="0" x2="1"><stop stop-color="#111a29"/><stop offset="1" stop-color="#0c1320"/></linearGradient></defs><rect width="420" height="220" rx="18" fill="url(#c)"/><circle cx="330" cy="58" r="75" fill="#5e4be6" opacity=".15"/><text x="28" y="48" font-size="32">${icon}</text><text x="28" y="94" fill="#fff" font-size="18" font-weight="700">${safe[0]||'Build'}</text><text x="28" y="125" fill="#93a2b7" font-size="13">${safe[1]||'Follow the guide'}</text><rect x="28" y="156" width="170" height="8" rx="4" fill="#202b3b"/><rect x="28" y="156" width="112" height="8" rx="4" fill="#8257ff"/></svg>`;
+  }
+
+  function renderWelcome(){ qs('#welcomeVisual').innerHTML = svgFor(['Pick a project','Follow one step','Mark complete'],'🧰',false); }
+
+  function renderHome(){
+    show(homeView);
+    const term=(searchInput.value||'').toLowerCase().trim();
+    const diff=difficultySelect.value;
+    const filtered=projects.filter(p=>(diff==='all'||p.difficulty===diff)&&(!term||(p.title+' '+p.summary+' '+p.materials.join(' ')).toLowerCase().includes(term)));
+    projectGrid.innerHTML = filtered.length ? filtered.map((p,idx)=>{
+      const done=doneCount(p),pct=Math.round(done/p.steps.length*100);
+      return `<button class="project-card" data-project="${esc(p.id)}"><div class="project-image">${svgFor(p.steps[0]?.visual||[p.title],p.icon,false)}</div><div class="project-body"><div class="project-number">${String(idx+1).padStart(2,'0')}</div><h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><div class="meta-row"><span class="difficulty ${esc(p.difficulty)}">${esc(p.difficulty)}</span><span>◷ ${esc(p.time)}</span><span>${p.steps.length} steps</span></div><div class="progress-row"><div class="progress-track"><i style="width:${pct}%"></i></div><span>${done}/${p.steps.length}</span></div></div></button>`;
+    }).join('') : `<div class="empty">No projects match your search.</div>`;
+    qsa('[data-project]').forEach(btn=>btn.addEventListener('click',()=>openProject(btn.dataset.project,0)));
+    const last=readJSON('pi-last-v4',null);
+    if(last){ const p=projects.find(x=>x.id===last.id); if(p){ resumeText.textContent=`${p.title}, step ${last.step+1}: ${p.steps[last.step]?.title||''}`; resumeLabel.textContent='Continue →'; resumeQuick.disabled=false; resumeQuick.onclick=()=>openProject(p.id,last.step); } }
+    updateOverall();
+  }
+
+  function openProject(id,step){
+    currentProject=projects.find(p=>p.id===id);
+    if(!currentProject)return;
+    currentStep=Math.max(0,Math.min(Number(step)||0,currentProject.steps.length-1));
+    currentTab='guide';
+    localStorage.setItem('pi-last-v4',JSON.stringify({id:currentProject.id,step:currentStep}));
+    renderProject();
+  }
+
+  function renderProject(){
+    const p=currentProject,done=doneCount(p),pct=Math.round(done/p.steps.length*100);
+    show(projectView);
+    projectView.innerHTML=`<div class="breadcrumb"><button class="text-link" id="backProjects">Projects</button> / ${esc(p.title)}</div>
+      <section class="project-hero"><div class="hero-img">${svgFor(p.steps[0]?.visual||[p.title],p.icon,false)}</div><div class="hero-copy"><span class="eyebrow">${esc(p.category)}</span><h1>${esc(p.title)}</h1><p>${esc(p.summary)}</p><div class="stat-line"><div><small>Difficulty</small><strong class="difficulty ${esc(p.difficulty)}">${esc(p.difficulty)}</strong></div><div><small>Time</small><strong>${esc(p.time)}</strong></div><div><small>Steps</small><strong>${p.steps.length}</strong></div><div><small>Progress</small><strong>${pct}%</strong></div></div></div><button id="completeProject" class="outline-btn">${done===p.steps.length?'✓ Complete':'Mark Project Complete'}</button></section>
+      <nav class="tabs"><button data-tab="guide" class="tab active">Guide</button><button data-tab="steps" class="tab">Steps (${p.steps.length})</button><button data-tab="materials" class="tab">Materials</button><button data-tab="images" class="tab">Images</button></nav><div id="tabBody"></div>`;
+    qs('#backProjects').onclick=renderHome;
+    qs('#completeProject').onclick=()=>{p.steps.forEach((_,i)=>progress[p.id+'-'+i]=true);save();renderProject();};
+    qsa('[data-tab]').forEach(b=>b.onclick=()=>{currentTab=b.dataset.tab;qsa('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));renderTab();});
+    renderTab(); updateOverall();
+  }
+
+  function renderTab(){
+    const body=qs('#tabBody'); if(!body)return;
+    if(currentTab==='guide')body.innerHTML=guideHTML();
+    if(currentTab==='steps')body.innerHTML=stepsHTML();
+    if(currentTab==='materials')body.innerHTML=materialsHTML();
+    if(currentTab==='images')body.innerHTML=imagesHTML();
+    wireProjectControls();
+  }
+
+  function guideHTML(){
+    const p=currentProject,s=p.steps[currentStep],done=doneCount(p),pct=Math.round(done/p.steps.length*100);
+    return `<div class="guide-layout"><section class="guide-card"><div class="step-top"><span class="step-chip">Step ${currentStep+1} of ${p.steps.length}</span><span>${Math.round((currentStep+1)/p.steps.length*100)}% through guide</span></div><h2>${esc(s.title)}</h2><p class="lead">${esc(s.summary)}</p>
+      <div class="actions-list">${s.actions.map((a,i)=>`<div class="action-item"><b>${i+1}</b><span>${esc(a)}</span></div>`).join('')}</div>
+      <div class="step-image">${svgFor(s.visual||[s.title],p.icon,true)}<p>Generated instructional visual for this exact step. Follow the labels from left to right.</p></div>
+      <div class="callout-grid"><div class="callout success"><strong>✓ You’re done when</strong><span>${esc(s.success)}</span></div><div class="callout warning"><strong>⚠ Watch out</strong><span>${esc(s.warning)}</span></div></div>
+      <div class="step-actions"><button class="outline-btn" id="prevStep" ${currentStep===0?'disabled':''}>← Previous</button><button class="outline-btn ${isDone(p,currentStep)?'done':''}" id="markStep">${isDone(p,currentStep)?'✓ Completed':'Mark Complete'}</button><button class="primary-btn" id="nextStep" ${currentStep===p.steps.length-1?'disabled':''}>Next Step →</button></div></section>
+      <aside class="project-rail"><div class="rail-card"><h3>Materials</h3>${materialList(p)}</div><div class="rail-card"><h3>Project progress</h3><div class="progress-track large"><i style="width:${pct}%"></i></div><small>${done} / ${p.steps.length} completed</small><div class="step-index">${p.steps.map((st,i)=>`<button data-step="${i}" class="${i===currentStep?'active':''} ${isDone(p,i)?'complete':''}"><span>${isDone(p,i)?'✓':i+1}</span>${esc(st.title)}</button>`).join('')}</div></div></aside></div>`;
+  }
+
+  function stepsHTML(){ const p=currentProject; return `<div class="panel-page"><h2>Complete build plan</h2><p>Tap any step to jump directly into the guided walkthrough.</p><div class="plan-list">${p.steps.map((s,i)=>`<button data-step="${i}" class="plan-item ${isDone(p,i)?'complete':''}"><span>${isDone(p,i)?'✓':i+1}</span><div><strong>${esc(s.title)}</strong><small>${esc(s.summary)}</small></div><em>Open →</em></button>`).join('')}</div></div>`; }
+  function materialList(p){ return `<div class="materials-list">${p.materials.map(m=>{const key=p.id+'::'+m,have=!!inventory[key];return `<button class="material-item ${have?'have':''}" data-material="${encodeURIComponent(key)}"><span>${have?'✓':''}</span>${esc(m)}</button>`}).join('')}</div>`; }
+  function materialsHTML(){ return `<div class="panel-page"><h2>Materials checklist</h2><p>Tap each item you already own. Your checks are saved on this device.</p>${materialList(currentProject)}</div>`; }
+  function imagesHTML(){ const p=currentProject;return `<div class="panel-page"><h2>Step visuals</h2><p>Every step has its own generated instructional diagram. Tap an image to open that step.</p><div class="image-grid">${p.steps.map((s,i)=>`<button data-step="${i}" class="image-card">${svgFor(s.visual||[s.title],p.icon,true)}<strong>${i+1}. ${esc(s.title)}</strong></button>`).join('')}</div></div>`; }
+
+  function wireProjectControls(){
+    const prev=qs('#prevStep'),next=qs('#nextStep'),mark=qs('#markStep');
+    if(prev)prev.onclick=()=>moveStep(-1); if(next)next.onclick=()=>moveStep(1); if(mark)mark.onclick=()=>{const k=currentProject.id+'-'+currentStep;progress[k]=!progress[k];save();renderTab();updateOverall();};
+    qsa('[data-step]').forEach(b=>b.onclick=()=>{currentStep=Number(b.dataset.step);currentTab='guide';localStorage.setItem('pi-last-v4',JSON.stringify({id:currentProject.id,step:currentStep}));renderProject();});
+    qsa('[data-material]').forEach(b=>b.onclick=()=>{const k=decodeURIComponent(b.dataset.material);inventory[k]=!inventory[k];saveInventory();renderTab();});
+  }
+  function moveStep(d){const n=currentStep+d;if(n<0||n>=currentProject.steps.length)return;currentStep=n;localStorage.setItem('pi-last-v4',JSON.stringify({id:currentProject.id,step:n}));renderProject();}
+
+  function renderSetup(){
+    show(simpleView);
+    simpleView.innerHTML=`<div class="breadcrumb"><button class="text-link" id="simpleBack">Home</button> / Setup Guide</div><div class="panel-page"><span class="eyebrow">Start here</span><h1>Shared Raspberry Pi setup</h1><p>Complete this before you mount, glue, cut, or wire anything.</p><div class="setup-steps">${foundation.map((s,i)=>`<div class="setup-step"><b>${i+1}</b><div><strong>Setup step ${i+1}</strong><p>${esc(s)}</p></div></div>`).join('')}</div></div>`;
+    qs('#simpleBack').onclick=renderHome;
+  }
+  function renderInventory(){
+    const mats=[...new Set(projects.flatMap(p=>p.materials))];
+    show(simpleView);simpleView.innerHTML=`<div class="breadcrumb"><button class="text-link" id="simpleBack">Home</button> / Inventory</div><div class="panel-page"><span class="eyebrow">Hardware</span><h1>My Inventory</h1><p>Tap an item to mark it as owned across every project that uses it.</p><div class="inventory-grid">${mats.map(m=>{const have=projects.some(p=>inventory[p.id+'::'+m]);return `<button class="inventory-item ${have?'have':''}" data-global-material="${encodeURIComponent(m)}"><span>${have?'✓':''}</span>${esc(m)}</button>`}).join('')}</div></div>`;qs('#simpleBack').onclick=renderHome;qsa('[data-global-material]').forEach(b=>b.onclick=()=>{const m=decodeURIComponent(b.dataset.globalMaterial);const have=projects.some(p=>inventory[p.id+'::'+m]);projects.forEach(p=>{if(p.materials.includes(m))inventory[p.id+'::'+m]=!have;});saveInventory();renderInventory();});
+  }
+
+  searchInput.addEventListener('input',renderHome);
+  difficultySelect.addEventListener('change',renderHome);
+  qs('#setupQuick').onclick=renderSetup; qs('#inventoryQuick').onclick=renderInventory; resumeQuick.onclick=()=>{};
+  qsa('[data-view]').forEach(b=>b.onclick=()=>{qsa('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(b.dataset.view==='inventory')renderInventory();else if(b.dataset.view==='setup')renderSetup();else renderHome();});
+
+  renderWelcome(); renderHome();
+})();
 </script>
 </body>
 </html>
