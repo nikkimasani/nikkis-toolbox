@@ -14,6 +14,8 @@
 <link rel="stylesheet" href="/pi-command-center.css">
 <link rel="stylesheet" href="/pi-command-center-enhancements.css">
 <link rel="stylesheet" href="/pi-responsive-pwa.css">
+<link rel="stylesheet" href="/pi-native-setup.css">
+<link rel="stylesheet" href="/pi-project-visual-pass.css">
 </head>
 <body>
 <div class="app-shell">
@@ -23,13 +25,13 @@
       <button class="side-link active" data-view="home">⌂ <span>Overview</span></button>
       <button class="side-link" data-view="projects">◉ <span>Projects</span></button>
       <button class="side-link" data-view="inventory">▣ <span>My Inventory</span></button>
-      <a class="setup-nav-link" href="/pi-setup-guide-v2.html">◇ <span>Setup Guide</span></a>
+      <a class="setup-nav-link" href="#setup">◇ <span>Setup Guide</span></a>
       <button class="side-link" data-view="dashboard">⌘ <span>Pi Dashboard</span></button>
       <button class="side-link" data-view="resources">⚑ <span>Resources</span></button>
     </nav>
     <div class="side-card progress-card"><small>YOUR PROGRESS</small><div class="ring" id="overallRing"><span id="overallPct">0%</span></div><div id="overallText">0 steps completed</div></div>
     <div class="side-card recent-card"><small>RECENT PROJECT</small><div id="recentProject">Nothing started yet.</div></div>
-    <div class="side-card help-card"><strong>▣ Need Help?</strong><span>Every step includes a finish check, warning, visual, troubleshooting notes, and copy-ready commands when programming is required.</span></div>
+    <div class="side-card help-card"><strong>▣ Need Help?</strong><span>Every step includes detailed actions, visual comparisons, troubleshooting, copy-ready commands, and saved progress.</span></div>
   </aside>
   <main class="main">
     <header class="mobile-header"><div><span>🍓</span><strong>Pi Command Center</strong></div><a class="outline-btn" href="/" target="_top">Nikki's Toolbox</a></header>
@@ -43,8 +45,10 @@
 <script src="/pi-project-deep-dive.js"></script>
 <script src="/pi-command-center-app.js"></script>
 <script src="/pi-project-deep-commands.js"></script>
+<script src="/pi-native-setup.js"></script>
+<script src="/pi-project-visual-pass.js"></script>
 <script>
-document.addEventListener('click',function(e){const b=e.target.closest('#setupQuick');if(b){e.preventDefault();e.stopImmediatePropagation();location.href='/pi-setup-guide-v2.html';}},true);
+if(location.hash==='#setup'){setTimeout(()=>window.PI_NATIVE_SETUP?.open(),50)}
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/pi-sw.js').catch(()=>{}));}
 </script>
 </body>
