@@ -12,7 +12,7 @@
     {"src":"/pi-pwa-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ],
   "shortcuts": [
-    {"name":"Setup Guide","short_name":"Setup","url":"/pi-setup-guide-v2.html"},
+    {"name":"Setup Guide","short_name":"Setup","url":"/pi-command-center.html#setup"},
     {"name":"Projects","short_name":"Projects","url":"/pi-command-center.html"}
   ]
 }
