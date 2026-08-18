@@ -4,9 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pi Command">
 <title>Pi Command Center</title>
+<link rel="manifest" href="/pi-command-center.webmanifest">
+<link rel="icon" href="/pi-pwa-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/pi-pwa-icon.svg">
 <link rel="stylesheet" href="/pi-command-center.css">
 <link rel="stylesheet" href="/pi-command-center-enhancements.css">
+<link rel="stylesheet" href="/pi-responsive-pwa.css">
 </head>
 <body>
 <div class="app-shell">
@@ -38,6 +45,7 @@
 <script src="/pi-project-deep-commands.js"></script>
 <script>
 document.addEventListener('click',function(e){const b=e.target.closest('#setupQuick');if(b){e.preventDefault();e.stopImmediatePropagation();location.href='/pi-setup-guide.html';}},true);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/pi-sw.js').catch(()=>{}));}
 </script>
 </body>
 </html>
