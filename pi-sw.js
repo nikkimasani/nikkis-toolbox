@@ -1,6 +1,6 @@
-const CACHE='pi-command-center-v1';
+const CACHE='pi-command-center-v2';
 const ASSETS=[
-'/pi-command-center.html','/pi-setup-guide.html','/pi-command-center.css','/pi-command-center-enhancements.css','/pi-responsive-pwa.css','/pi-command-center-data.js','/pi-command-center-app.js','/pi-project-deep-dive.js','/pi-project-deep-commands.js','/pi-command-center.webmanifest','/pi-pwa-icon.svg','/pi-shot-imager-main.svg','/pi-shot-imager-customize.svg','/pi-shot-ssh-enable.svg','/pi-shot-ssh-terminal.svg'
+'/pi-command-center.html','/pi-setup-guide-pwa.html','/pi-command-center.css','/pi-command-center-enhancements.css','/pi-responsive-pwa.css','/pi-command-center-data.js','/pi-command-center-app.js','/pi-project-deep-dive.js','/pi-project-deep-commands.js','/pi-command-center.webmanifest','/pi-pwa-icon.svg','/pi-shot-imager-main.svg','/pi-shot-imager-customize.svg','/pi-shot-ssh-enable.svg','/pi-shot-ssh-terminal.svg'
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
