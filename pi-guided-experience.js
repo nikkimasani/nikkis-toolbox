@@ -1,0 +1,24 @@
+(()=>{
+const KEY='pi-guided-learning-v1';
+let state={checks:{},notes:{},confirmed:{}};
+try{state={...state,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const stepIndex=()=>Number(localStorage.getItem('pi-guided-step')||0);
+const actionText=article=>[...article.querySelectorAll('.action span')].map(x=>x.textContent.trim());
+function decorate(article,index){
+ if(article.dataset.interactive==='1')return; article.dataset.interactive='1';
+ const shot=article.querySelector('.shot'); if(shot)shot.classList.add('image-stage');
+ const actions=actionText(article);
+ const tools=document.createElement('div');tools.className='step-tools';tools.innerHTML=`<div><strong>What you need now</strong><span>${index<3?'Your normal computer, microSD setup hardware, and the item shown in the visual.':'Only the hardware/software needed for this step. Keep unrelated parts disconnected.'}</span></div><div><strong>Estimated focus</strong><span>${index<6?'2–5 minutes':'3–10 minutes'} · complete this checkpoint before continuing.</span></div>`;
+ const firstAction=article.querySelector('.actions'); if(firstAction)firstAction.before(tools);
+ if(actions.length){const box=document.createElement('div');box.className='microchecks';box.innerHTML=actions.map((a,i)=>`<label class="microcheck"><input type="checkbox" data-micro="${index}-${i}"><span>${a}</span></label>`).join(''); const actionsEl=article.querySelector('.actions'); actionsEl.after(box); actionsEl.style.display='none'; box.querySelectorAll('input').forEach(inp=>{inp.checked=!!state.checks[inp.dataset.micro];inp.onchange=()=>{state.checks[inp.dataset.micro]=inp.checked;save();updateConfirm(article,index)}})}
+ const ok=article.querySelector('.check');if(ok){const expected=document.createElement('div');expected.className='expected';expected.innerHTML=`<strong>👀 Compare before continuing</strong><p>${ok.textContent.replace(/^✓\s*/,'')}</p>`;ok.after(expected)}
+ const note=document.createElement('div');note.innerHTML=`<textarea class="step-note" placeholder="Add a note for this step, e.g. the Pi IP address, an error message, or what you changed.">${state.notes[index]||''}</textarea><div class="note-row"><button type="button">Save note</button></div>`;article.append(note);note.querySelector('button').onclick=()=>{state.notes[index]=note.querySelector('textarea').value;save();toast('Note saved')};
+ const confirm=document.createElement('div');confirm.className='confirm-row';confirm.innerHTML=`<button type="button" class="${state.confirmed[index]?'done':''}">${state.confirmed[index]?'✓ Step verified':'I checked it · verify step'}</button><span class="summary">Complete the action checks and compare your result.</span>`;article.append(confirm);confirm.querySelector('button').onclick=()=>{state.confirmed[index]=!state.confirmed[index];save();confirm.querySelector('button').classList.toggle('done',state.confirmed[index]);confirm.querySelector('button').textContent=state.confirmed[index]?'✓ Step verified':'I checked it · verify step';if(state.confirmed[index])toast('Checkpoint verified ✓')};
+ updateConfirm(article,index)
+}
+function updateConfirm(article,index){const inputs=[...article.querySelectorAll('[data-micro]')];const msg=article.querySelector('.confirm-row .summary');if(!msg)return;const n=inputs.filter(x=>x.checked).length;msg.textContent=inputs.length?`${n}/${inputs.length} actions checked. Compare the expected result before verifying.`:'Compare your result with the visual and success checkpoint.'}
+function toast(msg){let t=document.getElementById('toast');if(t){t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}}
+function decorateVisible(){document.querySelectorAll('#main article').forEach((a,i)=>decorate(a,Number(a.dataset.stepIndex||i)))}
+const obs=new MutationObserver(decorateVisible);obs.observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('DOMContentLoaded',()=>{decorateVisible();const hero=document.querySelector('.hero');if(hero&&!document.querySelector('.learnbar')){const b=document.createElement('div');b.className='learnbar';b.innerHTML=`<div class="status"><strong>Interactive learning mode</strong><small>Check each micro-action, compare your screen/hardware, save notes, then verify the checkpoint.</small></div><div class="learn-actions"><button onclick="document.querySelector('.shot')?.scrollIntoView({behavior:'smooth'})">View visual</button><button onclick="document.querySelector('.cmd')?.scrollIntoView({behavior:'smooth'})">Jump to commands</button><button class="primary" onclick="document.querySelector('.microchecks')?.scrollIntoView({behavior:'smooth'})">Start this step</button></div>`;hero.after(b)}})
+})();
