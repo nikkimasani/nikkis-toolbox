@@ -65,7 +65,9 @@ const TOOLBOX_RECENT_KEY='toolbox-recent-apps-v1';var currentAvailabilityFilter=
   const originalOpenApp = openApp;
   openApp = function(card) {
     originalOpenApp(card);
-    document.getElementById('appWorkspace').classList.add('has-tabs');
+    if (card.dataset.open !== 'newtab') {
+      document.getElementById('appWorkspace').classList.add('has-tabs');
+    }
   };
   document.getElementById('returnToLauncher')?.addEventListener('click', () => {
     document.getElementById('appWorkspace').classList.remove('has-tabs');
