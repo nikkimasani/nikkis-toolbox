@@ -15,7 +15,9 @@ window.fetch=(input,init)=>{
   }catch{}
   return realFetch(input,init);
 };
-// During active development, clear old WTM caches so iOS cannot pin a stale event bundle.
-if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+  try{navigator.serviceWorker.register=()=>Promise.reject(new Error('WTM cache disabled during active development'))}catch{}
+}
 if('caches' in window){caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('wtm-')).map(k=>caches.delete(k)))).catch(()=>{});}
 })();
