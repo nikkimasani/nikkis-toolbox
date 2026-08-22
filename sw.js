@@ -1,4 +1,4 @@
-const CACHE_NAME = 'toolbox-v4';
+const CACHE_NAME = 'toolbox-v5';
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -11,7 +11,8 @@ function updateLauncher(html) {
   let next = String(html)
     .replace('<span class="card-glyph">LCC</span>', '<span class="card-glyph">OS</span>')
     .replace('<div class="card-name">Life Command Center</div>', '<div class="card-name">Life OS</div>')
-    .replace('Open Life Command Center <span class="arrow">→</span>', 'Open Life OS <span class="arrow">→</span>');
+    .replace('Open Life Command Center <span class="arrow">→</span>', 'Open Life OS <span class="arrow">→</span>')
+    .replace(' data-open="newtab"', '');
 
   if (!next.includes('.card.wtm{')) {
     next = next.replace(
@@ -21,7 +22,7 @@ function updateLauncher(html) {
   }
 
   if (!next.includes('class="card wtm"')) {
-    const card = '<a class="card wtm" href="https://wtm-whats-the-move.vercel.app" data-key="" data-open="newtab" target="_blank" rel="noopener"><div class="card-top"><span class="card-num">No. 19</span><span class="card-glyph">WTM</span></div><div class="card-body"><div class="card-name">What’s the Move</div><p class="card-desc">Greater Houston event discovery, smart recommendations, RSVP planning, maps, and Nikki’s Social Calendar.</p><span class="card-cta">Open WTM <span class="arrow">→</span></span></div></a>';
+    const card = '<a class="card wtm" href="https://wtm-whats-the-move.vercel.app" data-key="" target="_blank" rel="noopener"><div class="card-top"><span class="card-num">No. 19</span><span class="card-glyph">WTM</span></div><div class="card-body"><div class="card-name">What’s the Move</div><p class="card-desc">Greater Houston event discovery, smart recommendations, RSVP planning, maps, and Nikki’s Social Calendar.</p><span class="card-cta">Open WTM <span class="arrow">→</span></span></div></a>';
     next = next.replace('</main>', card + '\n</main>');
   }
 
