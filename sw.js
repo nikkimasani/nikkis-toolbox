@@ -1,4 +1,4 @@
-const CACHE_NAME = 'toolbox-v3';
+const CACHE_NAME = 'toolbox-v4';
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -7,11 +7,25 @@ const STATIC_ASSETS = [
   '/icon-maskable.svg',
 ];
 
-function updateLifeOsCard(html) {
-  return String(html)
+function updateLauncher(html) {
+  let next = String(html)
     .replace('<span class="card-glyph">LCC</span>', '<span class="card-glyph">OS</span>')
     .replace('<div class="card-name">Life Command Center</div>', '<div class="card-name">Life OS</div>')
     .replace('Open Life Command Center <span class="arrow">→</span>', 'Open Life OS <span class="arrow">→</span>');
+
+  if (!next.includes('.card.wtm{')) {
+    next = next.replace(
+      '.card.hobonichi{--accent:#c9506b;--card-bg:#1c0f13}',
+      '.card.hobonichi{--accent:#c9506b;--card-bg:#1c0f13}.card.wtm{--accent:#f472b6;--card-bg:#180d16}'
+    );
+  }
+
+  if (!next.includes('class="card wtm"')) {
+    const card = '<a class="card wtm" href="https://wtm-whats-the-move.vercel.app" data-key="" data-open="newtab" target="_blank" rel="noopener"><div class="card-top"><span class="card-num">No. 19</span><span class="card-glyph">WTM</span></div><div class="card-body"><div class="card-name">What’s the Move</div><p class="card-desc">Greater Houston event discovery, smart recommendations, RSVP planning, maps, and Nikki’s Social Calendar.</p><span class="card-cta">Open WTM <span class="arrow">→</span></span></div></a>';
+    next = next.replace('</main>', card + '\n</main>');
+  }
+
+  return next;
 }
 
 self.addEventListener('install', e => {
@@ -45,7 +59,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' }).then(async resp => {
         if (!resp.ok) return resp;
-        const html = updateLifeOsCard(await resp.text());
+        const html = updateLauncher(await resp.text());
         const headers = new Headers(resp.headers);
         headers.set('content-type', 'text/html; charset=utf-8');
         headers.set('cache-control', 'no-store');
