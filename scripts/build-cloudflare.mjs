@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const root = process.cwd();
@@ -17,4 +17,12 @@ for (const entry of await readdir(root, { withFileTypes: true })) {
   await cp(join(root, entry.name), join(out, entry.name), { recursive: true });
 }
 
-console.log('Cloudflare static bundle created in cloudflare-dist');
+const indexPath = join(out, 'index.html');
+let html = await readFile(indexPath, 'utf8');
+const cloudflareScript = '<script src="/cloudflare-apps.js"></script>';
+if (!html.includes(cloudflareScript)) {
+  html = html.replace('</body>', `${cloudflareScript}\n</body>`);
+  await writeFile(indexPath, html, 'utf8');
+}
+
+console.log('Cloudflare Toolbox bundle created in cloudflare-dist with Cloudflare app URL registry');
