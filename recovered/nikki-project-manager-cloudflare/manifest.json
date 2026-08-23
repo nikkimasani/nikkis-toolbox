@@ -1,0 +1,9 @@
+{
+  "name": "Nikki Project Manager",
+  "short_name": "Project Manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0b17",
+  "theme_color": "#111027",
+  "description": "A focused Kanban board for projects, tasks and notes."
+}
