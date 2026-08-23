@@ -34,6 +34,8 @@ window.NIKKI_CLOUDFLARE_APPS = {
   for (const [className, app] of Object.entries(window.NIKKI_CLOUDFLARE_APPS)) {
     const card = document.querySelector(`.card.${className}`);
     if (!card) continue;
+    const name = card.querySelector('.card-name');
+    if (name) name.textContent = app.name;
     card.dataset.cloudflareProject = app.project;
     card.dataset.cloudflareType = app.type;
     card.dataset.hosting = 'cloudflare';
