@@ -1,4 +1,4 @@
-const CACHE_NAME = 'toolbox-v9';
+const CACHE_NAME = 'toolbox-v10';
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -13,6 +13,8 @@ function updateLauncher(html) {
     .replace('<div class="card-name">Life Command Center</div>', '<div class="card-name">Life OS</div>')
     .replace('Open Life Command Center <span class="arrow">→</span>', 'Open Life OS <span class="arrow">→</span>')
     .replace('href="https://hobonichi-planner.vercel.app" data-key="" data-open="newtab"', 'href="https://hobonichi-planner.vercel.app" data-key=""');
+
+  next = next.replace(/Meeting App/g, 'Said and Done').replace(/Meeting Notes/g, 'Said and Done');
 
   if (!next.includes('.card.wtm{')) {
     next = next.replace(
