@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/wtm-fever-register", "destination": "/api/wtm-fever-auth?op=register" },
+    { "source": "/api/wtm-fever-token", "destination": "/api/wtm-fever-auth?op=token" }
+  ]
+}
