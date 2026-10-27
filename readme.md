@@ -1,5 +1,7 @@
 # Nikki's Toolbox 🧰
 
+> Cloudflare version: [nikkis-toolbox-cloudflare](https://github.com/nikkimasani/nikkis-toolbox-cloudflare) · https://nikkis-toolbox-cloudflare.pages.dev
+
 A launcher dashboard — one place to open all of my apps, installable as a PWA on phone, tablet, or desktop.
 
 **Live:** https://toolbox-nine-eta.vercel.app
@@ -39,7 +41,7 @@ git commit -m "describe change"
 git push
 ```
 
-Vercel deploys to production within ~30 seconds. (Manual fallback: `vercel --cwd C:\Users\nikki\toolbox --prod --yes`.)
+Vercel deploys to production within ~30 seconds. (Manual fallback: run `vercel --prod --yes` from the project folder (locally: `C:\Users\nikki\Projects\Apps\nikkis-toolbox`).)
 
 ## Adding a new app
 
