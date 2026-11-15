@@ -1,5 +1,7 @@
 # Nikki's Toolbox 🧰
 
+> Cloudflare version: [nikkis-toolbox-cloudflare](https://github.com/nikkimasani/nikkis-toolbox-cloudflare) · https://nikkis-toolbox-cloudflare.pages.dev
+
 A launcher dashboard — one place to open all of my apps, installable as a PWA on phone, tablet, or desktop.
 
 **Live:** https://toolbox-nine-eta.vercel.app
@@ -39,10 +41,16 @@ git commit -m "describe change"
 git push
 ```
 
-Vercel deploys to production within ~30 seconds. (Manual fallback: `vercel --cwd C:\Users\nikki\toolbox --prod --yes`.)
+Vercel deploys to production within ~30 seconds. (Manual fallback: run `vercel --prod --yes` from the project folder (locally: `C:\Users\nikki\Projects\Apps\nikkis-toolbox`).)
 
 ## Adding a new app
 
 1. Copy one of the `.card` blocks in `index.html` and update the name, description, link, and `data-key`.
 2. Add a per-app accent class (see `.card.tradelab` etc. in the CSS).
 3. Redeploy.
+
+## Portfolio and launcher modes
+
+The page opens as a public portfolio (intro, selected work, all projects by category, about). The **Launcher** button in the top bar switches to the private launcher (search, recent apps, in-page app tabs, number-key shortcuts); the choice is remembered on that device. `?launcher=1` and `?portfolio=1` force a mode, and the installed PWA opens straight into the launcher.
+
+When adding an app, also give it an entry in the `PORTFOLIO` map near the top of the script (its category, and `private: true` to keep it out of the public portfolio). `FEATURED` lists the three apps in Selected work. Private apps are only hidden from view, not secret: their links are still in the page source.
