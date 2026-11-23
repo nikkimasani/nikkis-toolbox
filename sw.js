@@ -1,4 +1,4 @@
-const CACHE_NAME = 'toolbox-portfolio-v5';
+const CACHE_NAME = 'toolbox-portfolio-v6';
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -11,7 +11,7 @@ function updateLauncher(html) {
   let next = String(html)
     .replace('href="https://hobonichi-planner.vercel.app" data-key="" data-open="newtab"', 'href="https://hobonichi-planner.vercel.app" data-key=""');
 
-  next = next.replace(/Meeting App/g, 'Said and Done').replace(/Meeting Notes/g, 'Said and Done');
+  next = next.replace(/Meeting App/g, 'Recapp').replace(/Meeting Notes/g, 'Recapp').replace(/Said and Done/g, 'Recapp');
 
   if (!next.includes('.card.wtm{')) {
     next = next.replace(
